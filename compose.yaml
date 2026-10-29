@@ -31,7 +31,7 @@ services:
   web:
     build: ./abp-1dsm-front
     ports:
-      - "8080:80"
+      - "80:80"
     depends_on:
       - api
 
