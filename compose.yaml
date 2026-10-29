@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: abp
+      POSTGRES_USER: abp
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-abp-local}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./abp-1dsm-server/suporte/clausulas_SQL.txt:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U abp -d abp"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: ./abp-1dsm-server
+    environment:
+      PORT: 3030
+      BDUSUARIO: abp
+      BDHOST: db
+      BDNOME: abp
+      BDSENHA: ${POSTGRES_PASSWORD:-abp-local}
+      BDPORTA: 5432
+      QUANTIDADE: 10
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: ./abp-1dsm-front
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
